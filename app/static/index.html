@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="PayFlow - reliable, event-driven payment processing.">
+    <title>PayFlow | Event-driven payments</title>
+    <link rel="icon" href="/static/payflow-mark.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+
+    <header class="nav shell">
+      <a class="brand" href="/" aria-label="PayFlow home">
+        <img src="/static/payflow-mark.svg" alt="" width="40" height="40">
+        <span>PayFlow</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="#architecture">Architecture</a>
+        <a href="#api">API</a>
+        <a class="nav-button" href="/docs">Explore docs <span aria-hidden="true">↗</span></a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero shell">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="eyebrow-dot"></span> Production-inspired backend</div>
+          <h1>Payments that<br><span>retry safely.</span></h1>
+          <p class="hero-text">
+            A focused payment service built around idempotency, deterministic risk controls,
+            durable state, and asynchronous Kafka events.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="/docs">Open API explorer <span>↗</span></a>
+            <a class="button button-secondary" href="#architecture">See the flow <span>↓</span></a>
+          </div>
+          <div class="status-line" aria-live="polite">
+            <span id="status-dot" class="status-dot checking"></span>
+            <span id="status-text">Checking system health...</span>
+          </div>
+        </div>
+
+        <div class="transaction-card" aria-label="Example payment transaction">
+          <div class="card-topline">
+            <span>PAYMENT COMPLETED</span>
+            <span class="success-badge">SUCCESS</span>
+          </div>
+          <div class="amount"><span>₹</span>1,250<span class="amount-decimal">.00</span></div>
+          <div class="transfer-row">
+            <div>
+              <span class="label">From</span>
+              <strong>User 101</strong>
+            </div>
+            <div class="flow-arrow">→</div>
+            <div class="align-right">
+              <span class="label">To</span>
+              <strong>User 205</strong>
+            </div>
+          </div>
+          <div class="card-divider"></div>
+          <dl class="transaction-meta">
+            <div><dt>Transaction</dt><dd>pay_f47ac10b</dd></div>
+            <div><dt>Risk level</dt><dd class="risk-low"><i></i> LOW</dd></div>
+            <div><dt>Event</dt><dd>Kafka queued</dd></div>
+          </dl>
+          <div class="card-glow"></div>
+        </div>
+      </section>
+
+      <section class="proof shell" aria-label="Core guarantees">
+        <article><strong>01</strong><div><h2>Duplicate-safe</h2><p>One logical request, at most one payment.</p></div></article>
+        <article><strong>02</strong><div><h2>Risk-aware</h2><p>Clear, testable rules before approval.</p></div></article>
+        <article><strong>03</strong><div><h2>Event-driven</h2><p>Secondary work stays off the request path.</p></div></article>
+      </section>
+
+      <section id="architecture" class="section shell">
+        <div class="section-heading">
+          <span class="kicker">How it works</span>
+          <h2>Reliable at the core.<br>Flexible at the edges.</h2>
+          <p>The database transaction is the source of truth. An outbox safely bridges committed payments to Kafka.</p>
+        </div>
+        <div class="flow" role="img" aria-label="Client request flows through API, risk engine, PostgreSQL outbox, Kafka and consumers">
+          <div class="flow-node"><span class="node-icon">⌁</span><small>Request</small><strong>Client</strong></div>
+          <span class="connector">→</span>
+          <div class="flow-node active"><span class="node-icon">P</span><small>Validate</small><strong>Payment API</strong></div>
+          <span class="connector">→</span>
+          <div class="flow-node"><span class="node-icon">◇</span><small>Assess</small><strong>Risk engine</strong></div>
+          <span class="connector">→</span>
+          <div class="flow-node"><span class="node-icon">▱</span><small>Commit</small><strong>PostgreSQL</strong></div>
+          <span class="connector">→</span>
+          <div class="flow-node"><span class="node-icon">≋</span><small>Publish</small><strong>Kafka</strong></div>
+        </div>
+        <div class="outbox-note"><span>↳</span><p><strong>Transactional outbox</strong> keeps events durable when the broker is temporarily unavailable.</p></div>
+      </section>
+
+      <section id="api" class="section api-section shell">
+        <div class="section-heading compact">
+          <span class="kicker">Small, deliberate surface</span>
+          <h2>Four endpoints.<br>No unnecessary ceremony.</h2>
+        </div>
+        <div class="endpoint-list">
+          <a href="/docs#/payments/create_payment_payments_post"><span class="method post">POST</span><code>/payments</code><p>Create or safely replay a payment</p><b>→</b></a>
+          <a href="/docs#/payments/get_payment_payments__transaction_id__get"><span class="method get">GET</span><code>/payments/{transaction_id}</code><p>Retrieve a payment</p><b>→</b></a>
+          <a href="/docs#/payments/list_payments_payments_get"><span class="method get">GET</span><code>/payments</code><p>Browse paginated transactions</p><b>→</b></a>
+          <a href="/docs#/operations/health_health_get"><span class="method get">GET</span><code>/health</code><p>Inspect service dependencies</p><b>→</b></a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="shell">
+      <div class="brand footer-brand"><img src="/static/payflow-mark.svg" alt="" width="32" height="32"><span>PayFlow</span></div>
+      <p>Designed to demonstrate reliable backend engineering.</p>
+      <a href="/docs">API docs ↗</a>
+    </footer>
+
+    <script>
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      fetch('/health')
+        .then((response) => response.json())
+        .then((health) => {
+          const ready = health.database === 'healthy';
+          dot.className = `status-dot ${ready ? 'online' : 'degraded'}`;
+          text.textContent = ready
+            ? `API online · Database healthy · Kafka ${health.kafka}`
+            : 'API online · Database unavailable';
+        })
+        .catch(() => {
+          dot.className = 'status-dot degraded';
+          text.textContent = 'Health status unavailable';
+        });
+    </script>
+  </body>
+</html>
